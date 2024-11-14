@@ -3,26 +3,43 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from config import Config
+import PyPDF2
 
 INDEX_FILE = Config.FAISS_INDEX_PATH
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+CHUNK_SIZE = 500  # Adjust the chunk size based on your needs
 
 
-def load_documents_from_directory(directory_path):
+def load_and_chunk_documents(directory_path):
     documents = []
+    doc_ids = []  # To keep track of document IDs and chunk numbers
     for root, _, files in os.walk(directory_path):
         for file in files:
-            if file.endswith(".txt"):
+            if file.endswith(".pdf"):
                 file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    documents.append(f.read())
-    return documents
+                # Extract text from PDF
+                with open(file_path, "rb") as f:
+                    reader = PyPDF2.PdfReader(f)
+                    content = ""
+                    for page_num in range(len(reader.pages)):
+                        page = reader.pages[page_num]
+                        text = page.extract_text()
+                        if text:
+                            content += text
+                # Split the document into chunks
+                chunks = [
+                    content[i : i + CHUNK_SIZE]
+                    for i in range(0, len(content), CHUNK_SIZE)
+                ]
+                documents.extend(chunks)
+                doc_ids.extend([(file, idx) for idx in range(len(chunks))])
+    return documents, doc_ids
 
 
 def create_and_save_faiss_index():
-    # Load documents from the specified directory
-    print("Loading documents...")
-    docs = load_documents_from_directory(Config.LEGAL_DATASET_PATH)
+    # Load and chunk documents
+    print("Loading and chunking documents...")
+    docs, doc_ids = load_and_chunk_documents(Config.LEGAL_DATASET_PATH)
 
     # Initialize the embedding model
     print("Embedding documents...")
@@ -46,10 +63,14 @@ def create_and_save_faiss_index():
     index = faiss.IndexFlatL2(dimension)
     index.add(embeddings)  # type: ignore
 
-    # Save the index
+    # Save the index, docs, and doc_ids
     os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
     faiss.write_index(index, INDEX_FILE)
-    print(f"FAISS index created and saved to {INDEX_FILE}")
+    np.save(Config.DOCS_PATH, docs)  # Save the docs array
+    np.save(Config.DOC_IDS_PATH, doc_ids)
+    print(
+        f"FAISS index, docs, and doc_ids saved to {INDEX_FILE}, {Config.DOCS_PATH}, and {Config.DOC_IDS_PATH}"
+    )
 
 
 if __name__ == "__main__":
