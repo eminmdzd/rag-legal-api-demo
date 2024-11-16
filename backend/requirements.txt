@@ -1,0 +1,9 @@
+Flask==2.0.3
+faiss-cpu==1.7.1
+sentence-transformers==2.1.0
+datasets==3.1.0
+openai==1.54.4
+python-dotenv==1.0.1
+watchdog==2.1.9
+tiktoken==0.8.0
+PyPDF2==3.0.1
