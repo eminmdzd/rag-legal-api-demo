@@ -1,13 +1,13 @@
-import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from config import Config
 import PyPDF2
+import os
 
 INDEX_FILE = Config.FAISS_INDEX_PATH
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
-CHUNK_SIZE = 500  # Adjust the chunk size based on your needs
+CHUNK_SIZE = 500
 
 
 def load_and_chunk_documents(directory_path):

@@ -43,10 +43,7 @@ def generate_answer(query):
         {
             "role": "system",
             "content": (
-                "You are a helpful assistant specialized in legal matters. "
-                "Use the provided documents to answer the question. "
-                "Cite the document name and part number when referring to the documents. "
-                "If the answer is not in the documents, generate an answer but mention that it is purely AI-generated."
+                "You are a professional assistant specialized in international trade law matters. Use the provided documents to answer the question. When referring to the documents, always cite the document name, case names, and part numbers. If the answer to the question comes from a specific case, make sure to cite the full case name. If the answer is not in the provided documents, generate an answer but mention that it is purely AI-generated."
             ),
         },
         {
